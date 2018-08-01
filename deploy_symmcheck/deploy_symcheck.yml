@@ -1,0 +1,43 @@
+- hosts: devserv2
+
+  tasks:
+  - name: backup symmcheck checks directory
+    shell: cd /storage/symmcheck; tar -cvf checks_`date +%Y%m%d__%H_%M_%S`.tar checks
+    args:
+     executable: /bin/bash
+
+  - name: remove current checks work directory
+    shell: rm -rf /storage/symmcheck/checks
+    args:
+     executable: /bin/bash
+
+  - name: copy files from a directory to remote server
+    synchronize:
+      src: /home/tomcat/.jenkins/workspace/deploy_symmcheck/checks
+      dest: /storage/symmcheck/
+
+  - name: change owner of dir
+    file:
+      dest: /storage/symmcheck
+      owner: symmetricds
+      group: symmetricds
+      recurse: yes
+
+  - name: update symmcheck db comparer jar-file
+    copy:
+      src: /home/tomcat/.jenkins/workspace/deploy_symmcheck/target/symmcheck-1.0-SNAPSHOT-db-comparer.jar
+      dest: /storage/symmcheck/symmcheck-1.0-SNAPSHOT-db-comparer.jar
+      mode: 0777
+      owner: symmetricds
+      group: symmetricds
+      force: yes
+
+  - name: update symmcheck md5 jar-file
+    copy:
+      src: /home/tomcat/.jenkins/workspace/deploy_symmcheck/target/symmcheck-1.0-SNAPSHOT-executable-md5.jar
+      dest: /storage/symmcheck/symmcheck-1.0-SNAPSHOT-executable-md5.jar
+      mode: 0777
+      owner: symmetricds
+      group: symmetricds
+      force: yes
+
